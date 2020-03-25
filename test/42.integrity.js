@@ -7,7 +7,7 @@ describe('integrity checks', function () {
 	beforeEach(function () {
 		let func = () => {};
 		this.useFunc = fn => { func = fn; };
-		this.db = new Database(util.next());
+		this.db = new Database(util.next(), {unsafe: true});
 		this.db.prepare("CREATE TABLE entries (a TEXT, b INTEGER, c REAL, d BLOB, e TEXT)").run();
 		this.db.prepare("INSERT INTO entries WITH RECURSIVE temp(a, b, c, d, e) AS (SELECT 'foo', 1, 3.14, x'dddddddd', NULL UNION ALL SELECT a, b + 1, c, d, e FROM temp LIMIT 5) SELECT * FROM temp").run();
 		this.db.function('func', x => (func(), x));
@@ -19,8 +19,8 @@ describe('integrity checks', function () {
 		this.db.close();
 	});
 
-	const allowed = fn => () => expect(fn).to.not.throw();
-	const blocked = fn => () => expect(fn).to.throw(TypeError);
+	const blocked = fn => () => expect(fn).to.not.throw();
+	const allowed = fn => () => expect(fn).to.throw(TypeError);
 	const normally = fn => fn();
 	const whileIterating = (self, fn) => {
 		let count = 0;
